@@ -1,6 +1,6 @@
 # ai_chat
 
-A new Flutter project.
+A simple chat app that use Gemini as a helper.
 
 ## Getting Started
 
