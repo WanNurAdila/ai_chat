@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../new_chat.dart';
 
+// ignore: must_be_immutable
 class NewChatPage extends StatelessWidget {
-  const NewChatPage({super.key});
+  NewChatPage({super.key, this.title, this.prompt});
+
+  String? title = '';
+  String? prompt;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +20,7 @@ class NewChatPage extends StatelessWidget {
             elevation: 1,
             backgroundColor: Colors.white,
             titleSpacing: 0,
-            title: const Text('New Chat')),
+            title: Text(title != null ? '$title' : 'New Chat')),
       ),
       body: MultiBlocProvider(
         providers: [
@@ -24,7 +28,7 @@ class NewChatPage extends StatelessWidget {
             create: (_) => NewChatBloc(),
           ),
         ],
-        child: const SafeArea(child: NewChatView()),
+        child: SafeArea(child: NewChatView(prompt: prompt)),
       ),
     );
   }

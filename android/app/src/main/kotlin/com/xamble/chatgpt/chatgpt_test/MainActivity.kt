@@ -1,4 +1,4 @@
-package com.xamble.chatgpt.ai_chat
+package com.adila.ai_chat
 
 import io.flutter.embedding.android.FlutterActivity
 

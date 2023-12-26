@@ -31,7 +31,7 @@ class NewChatBloc extends Bloc<NewChatEvent, NewChatState> {
   }
 
   Future<void> _onPromptSubmit(
-      PromptSubmit prompt, Emitter<NewChatState> emit) async {
+      PromptSubmit prompt, Emitter<NewChatState> emit) async {  
     try {
       if (state.status != NewChatStatus.failure) {
         emit(

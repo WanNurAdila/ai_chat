@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NewChatView extends StatefulWidget {
-  const NewChatView({super.key});
+  String? prompt;
+
+  NewChatView({super.key, this.prompt});
 
   @override
   State<NewChatView> createState() => _NewChatState();
@@ -35,6 +37,7 @@ class _NewChatState extends State<NewChatView> {
     context.read<NewChatBloc>().add(PromptSubmit(chats));
   }
 
+
   chatListView() {
     return SingleChildScrollView(
       child: Column(children: [
@@ -47,15 +50,21 @@ class _NewChatState extends State<NewChatView> {
               itemCount: chats.length,
               itemBuilder: (ctx, idx) {
                 return Align(
-                  alignment: chats[idx].role == 'user' ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: chats[idx].role == 'user'
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
                   child: Container(
                     constraints: BoxConstraints(
-                      maxWidth: chats[idx].role == 'user' ? MediaQuery.of(context).size.width - 60 : MediaQuery.of(context).size.width - 40,
+                      maxWidth: chats[idx].role == 'user'
+                          ? MediaQuery.of(context).size.width - 60
+                          : MediaQuery.of(context).size.width - 40,
                     ),
                     alignment: Alignment.centerLeft,
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                        color: chats[idx].role == 'user' ? Colors.blueGrey :Colors.grey,
+                        color: chats[idx].role == 'user'
+                            ? Colors.blueGrey
+                            : Colors.grey,
                         borderRadius: BorderRadius.circular(16)),
                     child: Markdown(
                         styleSheet: MarkdownStyleSheet(textScaleFactor: 1.3),
@@ -181,6 +190,11 @@ class _NewChatState extends State<NewChatView> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+      if (widget.prompt != null) {
+      messageController.text = '${widget.prompt}';
+
+      onSubmitPrompt();
+    }
   }
 
   @override

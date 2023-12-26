@@ -3,6 +3,7 @@ import 'package:ai_chat/chat_detail/views/chat_detail_page.dart';
 import 'package:ai_chat/new_chat/views/new_chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rive/rive.dart' as rive;
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -12,6 +13,20 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
+  rive.SMIInput<bool>? _boolExampleInput;
+  List prompt = [
+    {"title": "Graphic design", "prompt": ""},
+    {"title": "UX research", "prompt": ""},
+    {"title": "Math solver", "prompt": ""},
+    {"title": "Productivity to-do list", "prompt": ""},
+    {"title": "Graphic Design", "prompt": ""},
+  ];
+
+  List history = [
+    {"title": 'Job finder ux', "prompt": ''},
+    {"title": 'graphic design copy', "prompt": ''},
+    {"title": 'food and beverages', "prompt": ''},
+  ];
   List automation = [
     {
       "icon": Icons.shopping_cart,
@@ -34,9 +49,18 @@ class MainScreenState extends State<MainScreen> {
     },
   ];
 
+  void _onInit(rive.Artboard art) {
+    var controller =
+        rive.StateMachineController.fromArtboard(art, 'State Machine 1');
+    art.addController(controller!);
+    _boolExampleInput = controller.findInput<bool>('Boolean 1') as rive.SMIBool;
+    _boolExampleInput?.value = true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(0),
         child: AppBar(
@@ -46,66 +70,150 @@ class MainScreenState extends State<MainScreen> {
           backgroundColor: Colors.transparent,
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Chat AI',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w500),
+      extendBodyBehindAppBar: true,
+      extendBody: true,
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+                gradient: LinearGradient(
+              colors: [Color(0xff2d2026), Color(0xff1d1e54)],
+              stops: [0.25, 0.75],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            )),
+          ),
+          SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Chat AI',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w500),
+                ),
               ),
-            ),
-            Container(
-                padding: const EdgeInsets.only(left: 10),
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width - 235,
+                        child: const Text(
+                          'Good Morning, Jane',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 32,
+                              color: Colors.white),
+                        ),
+                      ),
+                      Container(
+                          alignment: Alignment.center,
+                          height: 150,
+                          width: 150,
+                          child: rive.RiveAnimation.asset(
+                            'assets/rive/6646-12853-this-is-me-patchpocom.riv',
+                            onInit: _onInit,
+                          )),
+                    ]),
+              ),
+              Container(
+                padding: const EdgeInsets.only(left: 16, bottom: 16),
                 alignment: Alignment.topLeft,
                 child: const Text(
                   'Automation',
-                  style: TextStyle(fontSize: 20),
-                )),
-            Container(
-              height: 200,
-              padding: const EdgeInsets.symmetric(
-                vertical: 16,
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white),
+                ),
               ),
-              child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: automation.length,
-                  itemBuilder: (ctx, idx) {
-                    return Container(
-                      width: 180,
-                      margin: const EdgeInsets.only(left: 8),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                          border: Border.all(width: 1),
-                          borderRadius: BorderRadius.circular(8)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(automation[idx]['icon']),
-                          Text('${automation[idx]['title']}'),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: OutlinedButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (context) => ChatDetailPage(
-                                            prompt:
-                                                '${automation[idx]['prompt']}',
-                                          )));
-                                },
-                                child: const Text('Generate')),
-                          )
-                        ],
+              Container(
+                height: 162,
+                padding: const EdgeInsets.only(left: 8),
+                child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: automation.length,
+                    itemBuilder: (ctx, idx) {
+                      return Container(
+                        width: 180,
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(width: 1),
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(automation[idx]['icon']),
+                            Text('${automation[idx]['title']}'),
+                            Container(
+                              width: MediaQuery.of(context).size.width,
+                              padding: const EdgeInsets.only(top: 16),
+                              child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    backgroundColor: const Color(0xff121212),
+                                    side: const BorderSide(
+                                        color: Colors.transparent),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                ChatDetailPage(
+                                                  prompt:
+                                                      '${automation[idx]['prompt']}',
+                                                )));
+                                  },
+                                  child: const Text(
+                                    'Generate',
+                                    style: TextStyle(color: Colors.white),
+                                  )),
+                            )
+                          ],
+                        ),
+                      );
+                    }),
+              ),
+              Container(
+                  padding: const EdgeInsets.all(16),
+                  alignment: Alignment.topLeft,
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Trending prompt',
+                        style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white),
+                      ),
+                    ],
+                  )),
+              Wrap(
+                spacing: 4,
+                children: List.generate(
+                  prompt.length,
+                  (index) {
+                    return Chip(
+                      backgroundColor: const Color(0xff121212),
+                      side: const BorderSide(color: Colors.transparent),
+                      shape: const StadiumBorder(),
+                      label: Text(
+                        prompt[index]['title'],
+                        style: const TextStyle(color: Colors.white),
                       ),
                     );
-                  }),
-            )
-          ]),
-        ),
+                  },
+                ),
+              ),
+            ]),
+          )
+        ],
       ),
       bottomNavigationBar: SafeArea(
-        // padding: const EdgeInsets.symmetric(vertical: 14,horizontal: 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -113,14 +221,26 @@ class MainScreenState extends State<MainScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               width: MediaQuery.of(context).size.width,
               child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.transparent),
+                  ),
                   onPressed: () {
+                    _boolExampleInput?.value = true;
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const NewChatPage(),
+                        builder: (context) => NewChatPage(),
                       ),
                     );
                   },
-                  child: const Text('+ New Chat')),
+                  child: const Text(
+                    '+ New Chat',
+                    style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600),
+                  )),
             )
           ],
         ),

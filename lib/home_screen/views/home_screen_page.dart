@@ -1,5 +1,6 @@
+import 'package:ai_chat/home_screen/bloc/trending_prompt/trending_prompt_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../home_screen.dart';
 
@@ -9,22 +10,16 @@ class HomeScreenPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(0),
-        child: AppBar(
-          systemOverlayStyle:
-              const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-        ),
-      ),
       body: MultiBlocProvider(
         providers: [
           BlocProvider<HomeScreenBloc>(
-            create: (_) => HomeScreenBloc()..add(HomeScreenFetched()),
+            create: (_) => HomeScreenBloc()..add(AutomationFetched()),
+          ),
+          BlocProvider<TrendingPromptBloc>(
+            create: (_) => TrendingPromptBloc()..add(TrendingPromptFetched()),
           ),
         ],
-        child: const SafeArea(child: HomeScreenView()),
+        child: const HomeScreenView(),
       ),
     );
   }
