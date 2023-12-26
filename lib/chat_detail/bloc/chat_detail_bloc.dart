@@ -17,7 +17,7 @@ class ChatDetailBloc extends Bloc<ChatDetailEvent, ChatDetailState> {
       if (state.status == ChatDetailStatus.initial) {
         final res = await gemini.text(chat.prompt);
 
-        print('res ${res}');
+        
 
         return emit(state.copyWith(
             status: ChatDetailStatus.success,

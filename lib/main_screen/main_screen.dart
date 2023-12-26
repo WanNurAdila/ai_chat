@@ -55,7 +55,11 @@ class MainScreenState extends State<MainScreen> {
     art.addController(controller!);
     _boolExampleInput = controller.findInput<bool>('Boolean 1') as rive.SMIBool;
     _boolExampleInput?.value = true;
+
+
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +107,9 @@ class MainScreenState extends State<MainScreen> {
                         child: const Text(
                           'Good Morning, Jane',
                           style: TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 32),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 32,
+                              color: Colors.white),
                         ),
                       ),
                       Container(
@@ -117,16 +123,19 @@ class MainScreenState extends State<MainScreen> {
                     ]),
               ),
               Container(
-                padding: const EdgeInsets.only(left: 16),
+                padding: const EdgeInsets.only(left: 16, bottom: 16),
                 alignment: Alignment.topLeft,
                 child: const Text(
                   'Automation',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white),
                 ),
               ),
               Container(
-                height: 200,
-                padding: const EdgeInsets.only(top: 16, bottom: 16, left: 8),
+                height: 162,
+                padding: const EdgeInsets.only(left: 8),
                 child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: automation.length,
@@ -136,6 +145,7 @@ class MainScreenState extends State<MainScreen> {
                         margin: const EdgeInsets.symmetric(horizontal: 8),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
+                            color: Colors.white,
                             border: Border.all(width: 1),
                             borderRadius: BorderRadius.circular(8)),
                         child: Column(
@@ -172,7 +182,7 @@ class MainScreenState extends State<MainScreen> {
                     }),
               ),
               Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(16),
                   alignment: Alignment.topLeft,
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -180,32 +190,34 @@ class MainScreenState extends State<MainScreen> {
                       Text(
                         'Trending prompt',
                         style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.w600),
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white),
                       ),
                     ],
                   )),
-              Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Wrap(
-                  spacing: 4,
-                  children: List.generate(
-                    prompt.length,
-                    (index) {
-                      return Chip(
-                        side: const BorderSide(color: Colors.transparent),
-                        shape: const StadiumBorder(),
-                        label: Text(prompt[index]['title']),
-                      );
-                    },
-                  ),
+              Wrap(
+                spacing: 4,
+                children: List.generate(
+                  prompt.length,
+                  (index) {
+                    return Chip(
+                      backgroundColor: const Color(0xff121212),
+                      side: const BorderSide(color: Colors.transparent),
+                      shape: const StadiumBorder(),
+                      label: Text(
+                        prompt[index]['title'],
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    );
+                  },
                 ),
-              )
+              ),
             ]),
           )
         ],
       ),
       bottomNavigationBar: SafeArea(
-        // padding: const EdgeInsets.symmetric(vertical: 14,horizontal: 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -214,7 +226,7 @@ class MainScreenState extends State<MainScreen> {
               width: MediaQuery.of(context).size.width,
               child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    padding:const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Colors.white,
                     side: const BorderSide(color: Colors.transparent),
                   ),
@@ -228,7 +240,10 @@ class MainScreenState extends State<MainScreen> {
                   },
                   child: const Text(
                     '+ New Chat',
-                    style: TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600),
                   )),
             )
           ],
