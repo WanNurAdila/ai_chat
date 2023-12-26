@@ -55,11 +55,7 @@ class MainScreenState extends State<MainScreen> {
     art.addController(controller!);
     _boolExampleInput = controller.findInput<bool>('Boolean 1') as rive.SMIBool;
     _boolExampleInput?.value = true;
-
-
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -234,7 +230,7 @@ class MainScreenState extends State<MainScreen> {
                     _boolExampleInput?.value = true;
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const NewChatPage(),
+                        builder: (context) => NewChatPage(),
                       ),
                     );
                   },

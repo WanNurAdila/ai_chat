@@ -9,11 +9,11 @@ part 'home_screen_state.dart';
 
 class HomeScreenBloc extends Bloc<HomeScreenEvent, HomeScreenState> {
   HomeScreenBloc() : super(const HomeScreenState()) {
-    on<HomeScreenFetched>(_onHomeScreenFetched);
+    on<AutomationFetched>(_onAutomationFetched);
   }
   final gemini = Gemini.instance;
-  Future<void> _onHomeScreenFetched(
-      HomeScreenFetched chat, Emitter<HomeScreenState> emit) async {
+  Future<void> _onAutomationFetched(
+      AutomationFetched chat, Emitter<HomeScreenState> emit) async {
     try {
       if (state.status == HomeScreenStatus.initial) {
         final res = await gemini.text(

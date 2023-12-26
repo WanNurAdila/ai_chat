@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:ai_chat/chat_detail/views/chat_detail_page.dart';
+import 'package:ai_chat/home_screen/bloc/trending_prompt/trending_prompt_bloc.dart';
 import 'package:ai_chat/new_chat/views/new_chat_page.dart';
 import 'package:flutter/services.dart';
 
@@ -18,40 +19,12 @@ class HomeScreenView extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreenView> {
   rive.SMIInput<bool>? _boolExampleInput;
-  List prompt = [
-    {"title": "Graphic design", "prompt": ""},
-    {"title": "UX research", "prompt": ""},
-    {"title": "Math solver", "prompt": ""},
-    {"title": "Productivity to-do list", "prompt": ""},
-    {"title": "Graphic Design", "prompt": ""},
-  ];
 
   List history = [
     {"title": 'Job finder ux', "prompt": ''},
     {"title": 'graphic design copy', "prompt": ''},
     {"title": 'food and beverages', "prompt": ''},
   ];
-  // List automation = [
-  //   {
-  //     "icon": Icons.shopping_cart,
-  //     "title": 'Today\'s food and beverage shopping',
-  //     "description": 'Based on your morning routine.',
-  //     "prompt": 'Can you plan my weekly shopping list for single person?'
-  //   },
-  //   {
-  //     "icon": Icons.fitness_center_rounded,
-  //     "title": 'Home Workout idea for body shaping',
-  //     "description": 'Based on your morning routine.',
-  //     "prompt": 'Can you plan my workout idea?'
-  //   },
-  //   {
-  //     "icon": Icons.nightlife_outlined,
-  //     "title": 'Romantic gateway for two people',
-  //     "description": 'Based on your selected location.',
-  //     "prompt":
-  //         'Can you plan a romantic gateway for two people at any Southeast Asia island?'
-  //   },
-  // ];
 
   void _onInit(rive.Artboard art) {
     var controller =
@@ -151,7 +124,7 @@ class _HomeScreenState extends State<HomeScreenView> {
                             ),
                           ),
                           Container(
-                            height: 230,
+                            height: 250,
                             padding: const EdgeInsets.only(left: 8),
                             child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
@@ -205,12 +178,16 @@ class _HomeScreenState extends State<HomeScreenView> {
                                               ),
                                               onPressed: () {
                                                 Navigator.of(context).push(
-                                                    MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            ChatDetailPage(
-                                                              prompt:
-                                                                  '${automation[idx]['prompt']}',
-                                                            )));
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        NewChatPage(
+                                                      title:
+                                                          '${automation[idx]['short_title']}',
+                                                      prompt:
+                                                          '${automation[idx]['prompt']}',
+                                                    ),
+                                                  ),
+                                                );
                                               },
                                               child: const Text(
                                                 'Generate',
@@ -230,38 +207,78 @@ class _HomeScreenState extends State<HomeScreenView> {
                     return const Center(child: Text('Loading'));
                 }
               }),
-              Container(
-                  padding: const EdgeInsets.all(16),
-                  alignment: Alignment.topLeft,
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Trending prompt',
-                        style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white),
-                      ),
-                    ],
-                  )),
-              Wrap(
-                spacing: 4,
-                children: List.generate(
-                  prompt.length,
-                  (index) {
-                    return Chip(
-                      backgroundColor: const Color(0xff121212),
-                      side: const BorderSide(color: Colors.transparent),
-                      shape: const StadiumBorder(),
-                      label: Text(
-                        prompt[index]['title'],
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    );
-                  },
-                ),
-              ),
+              BlocBuilder<TrendingPromptBloc, TrendingPromptState>(
+                  builder: (context, state) {
+                switch (state.status) {
+                  case TrendingPromptStatus.failure:
+                    return const Center(child: Text('Fail'));
+                  case TrendingPromptStatus.success:
+                    {
+                      final withoutchara =
+                          state.result.replaceAll(RegExp('`'), '');
+                      final withoutjson =
+                          withoutchara.replaceAll(RegExp('json'), '');
+
+                      final prompt = jsonDecode(withoutjson);
+
+                      return Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 16),
+                            alignment: Alignment.topLeft,
+                            child: const Text(
+                              'Trending prompt',
+                              style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white),
+                            ),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            width: MediaQuery.of(context).size.width,
+                            child: Wrap(
+                              spacing: 4,
+                              children: List.generate(
+                                prompt.length,
+                                (index) {
+                                  return InkWell(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => NewChatPage(
+                                            title:
+                                                '${prompt[index]['keyword']}',
+                                            prompt:
+                                                '${prompt[index]['prompt']}',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Chip(
+                                      backgroundColor: const Color(0xff121212),
+                                      side: const BorderSide(
+                                          color: Colors.transparent),
+                                      shape: const StadiumBorder(),
+                                      label: Text(
+                                        prompt[index]['keyword'],
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          )
+                        ],
+                      );
+                    }
+                  default:
+                    return const Center(child: Text('Loading'));
+                }
+              }),
             ]),
           )
         ],
@@ -283,7 +300,7 @@ class _HomeScreenState extends State<HomeScreenView> {
                     _boolExampleInput?.value = true;
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => const NewChatPage(),
+                        builder: (context) => NewChatPage(),
                       ),
                     );
                   },
