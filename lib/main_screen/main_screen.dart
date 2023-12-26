@@ -113,7 +113,7 @@ class MainScreenState extends State<MainScreen> {
                           height: 150,
                           width: 150,
                           child: rive.RiveAnimation.asset(
-                            'assets/rive/6646-12853-this-is-me-patchpocom.riv',
+                            'assets/rive/avatar.riv',
                             onInit: _onInit,
                           )),
                     ]),

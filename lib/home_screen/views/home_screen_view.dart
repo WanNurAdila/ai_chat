@@ -62,13 +62,7 @@ class _HomeScreenState extends State<HomeScreenView> {
           ),
           SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'Chat AI',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w500),
-                ),
-              ),
+            const SizedBox(height: 40,),
               Container(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -90,7 +84,7 @@ class _HomeScreenState extends State<HomeScreenView> {
                           height: 150,
                           width: 150,
                           child: rive.RiveAnimation.asset(
-                            'assets/rive/6646-12853-this-is-me-patchpocom.riv',
+                            'assets/rive/avatar.riv',
                             onInit: _onInit,
                           )),
                     ]),
