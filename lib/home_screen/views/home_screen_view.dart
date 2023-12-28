@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:ai_chat/chat_detail/views/chat_detail_page.dart';
-import 'package:ai_chat/home_screen/bloc/trending_prompt/trending_prompt_bloc.dart';
 import 'package:ai_chat/new_chat/views/new_chat_page.dart';
 import 'package:flutter/services.dart';
 
@@ -26,6 +24,19 @@ class _HomeScreenState extends State<HomeScreenView> {
     {"title": 'food and beverages', "prompt": ''},
   ];
 
+  bool automation_ = false;
+  bool prompt_ = false;
+
+  ValueNotifier<bool> loading = ValueNotifier<bool>(true);
+  late rive.RiveAnimationController _loadingController;
+
+   @override
+  void initState() {
+    super.initState();
+    _loadingController = rive.SimpleAnimation('Animation 1');
+  }
+
+
   void _onInit(rive.Artboard art) {
     var controller =
         rive.StateMachineController.fromArtboard(art, 'State Machine 1');
@@ -33,6 +44,8 @@ class _HomeScreenState extends State<HomeScreenView> {
     _boolExampleInput = controller.findInput<bool>('Boolean 1') as rive.SMIBool;
     _boolExampleInput?.value = true;
   }
+  
+
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +75,9 @@ class _HomeScreenState extends State<HomeScreenView> {
           ),
           SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const SizedBox(height: 40,),
+              const SizedBox(
+                height: 40,
+              ),
               Container(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -96,12 +111,8 @@ class _HomeScreenState extends State<HomeScreenView> {
                     return const Center(child: Text('Fail'));
                   case HomeScreenStatus.success:
                     {
-                      final withoutchara =
-                          state.result.replaceAll(RegExp('`'), '');
-                      final withoutjson =
-                          withoutchara.replaceAll(RegExp('json'), '');
-
-                      final automation = jsonDecode(withoutjson);
+                      final automation = jsonDecode(state.automationResult);
+                      final prompt = jsonDecode(state.promptResult);
 
                       return Column(
                         children: [
@@ -131,7 +142,6 @@ class _HomeScreenState extends State<HomeScreenView> {
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
                                         color: Colors.white,
-                                        border: Border.all(width: 1),
                                         borderRadius: BorderRadius.circular(8)),
                                     child: Column(
                                       crossAxisAlignment:
@@ -142,7 +152,9 @@ class _HomeScreenState extends State<HomeScreenView> {
                                         Column(
                                           children: [
                                             Text(
-                                              '${automation[idx]['short_title']}',
+                                              '${automation[idx]['title']}',
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
                                               style: const TextStyle(
                                                   fontWeight: FontWeight.w600,
                                                   fontSize: 16),
@@ -176,7 +188,7 @@ class _HomeScreenState extends State<HomeScreenView> {
                                                     builder: (context) =>
                                                         NewChatPage(
                                                       title:
-                                                          '${automation[idx]['short_title']}',
+                                                          '${automation[idx]['title']}',
                                                       prompt:
                                                           '${automation[idx]['prompt']}',
                                                     ),
@@ -193,30 +205,7 @@ class _HomeScreenState extends State<HomeScreenView> {
                                     ),
                                   );
                                 }),
-                          )
-                        ],
-                      );
-                    }
-                  default:
-                    return const Center(child: Text('Loading'));
-                }
-              }),
-              BlocBuilder<TrendingPromptBloc, TrendingPromptState>(
-                  builder: (context, state) {
-                switch (state.status) {
-                  case TrendingPromptStatus.failure:
-                    return const Center(child: Text('Fail'));
-                  case TrendingPromptStatus.success:
-                    {
-                      final withoutchara =
-                          state.result.replaceAll(RegExp('`'), '');
-                      final withoutjson =
-                          withoutchara.replaceAll(RegExp('json'), '');
-
-                      final prompt = jsonDecode(withoutjson);
-
-                      return Column(
-                        children: [
+                          ),
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 16),
@@ -270,11 +259,18 @@ class _HomeScreenState extends State<HomeScreenView> {
                       );
                     }
                   default:
-                    return const Center(child: Text('Loading'));
+                    return Container(
+                        padding: const EdgeInsets.only(top: 36),
+                        alignment: Alignment.center,
+                        height: 300,
+                        child: rive.RiveAnimation.asset(
+                          'assets/rive/2564-5240-motoqueira-astronauta.riv',
+                       controllers: [_loadingController],
+                        ));
                 }
               }),
             ]),
-          )
+          ),
         ],
       ),
       bottomNavigationBar: SafeArea(
