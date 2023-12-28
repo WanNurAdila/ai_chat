@@ -39,7 +39,7 @@ class HomeScreenBloc extends Bloc<HomeScreenEvent, HomeScreenState> {
 
   Future<String> onGenerateResult(String prompt) async {
     final value = await gemini.text(prompt);
-
+print('value $value');
     final withoutchara =
         value?.content?.parts?.last.text!.replaceAll(RegExp('`'), '');
 

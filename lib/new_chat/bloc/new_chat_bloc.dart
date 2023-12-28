@@ -37,6 +37,7 @@ class NewChatBloc extends Bloc<NewChatEvent, NewChatState> {
         emit(
             state.copyWith(status: NewChatStatus.loading, chats: prompt.chats));
         await gemini.chat(prompt.chats).then((value) {
+          print('value $value');
           prompt.chats
               .add(Content(role: 'model', parts: [Parts(text: value?.output)]));
           emit(state.copyWith(

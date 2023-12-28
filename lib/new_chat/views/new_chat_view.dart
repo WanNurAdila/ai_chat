@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:ai_chat/home_screen/home_screen.dart';
 import 'package:ai_chat/new_chat/views/stylesheet.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -23,12 +26,22 @@ class _NewChatState extends State<NewChatView> {
   ValueNotifier<bool> textEditing = ValueNotifier<bool>(false);
   ValueNotifier<bool> loadingIcon = ValueNotifier<bool>(false);
   ValueNotifier<bool> isTopList = ValueNotifier<bool>(true);
+  ValueNotifier<String> title = ValueNotifier<String>('');
 
   TextEditingController messageController = TextEditingController();
   List<Content> chats = [];
   ValueNotifier<int> refreshResult = ValueNotifier<int>(0);
 
+  List simplePrompt = [];
+
   onSubmitPrompt() async {
+
+    if (title.value.isEmpty) {
+      HomeScreenBloc().onGenerateResult('Generate 1 simple and short title with this prompt = ${messageController.text}').then((value) {
+        
+        title.value = value;
+      });
+    }
     chats.add(
       Content(
         role: 'user',
@@ -141,12 +154,17 @@ class _NewChatState extends State<NewChatView> {
                           md: 8,
                           lg: 8,
                           aligment: Alignment.center,
-                          child: Text(
-                            widget.title != null ? '${widget.title}' : '',
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16),
+                          child: ValueListenableBuilder(
+                            valueListenable: title,
+                            builder: (context, value, child) {
+                              return Text(
+                                value,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16),
+                              );
+                            },
                           )),
                       const SpGridItem(
                           xs: 2, sm: 2, md: 2, lg: 2, child: SizedBox()),
@@ -189,13 +207,45 @@ class _NewChatState extends State<NewChatView> {
                       }
                     default:
                       return Container(
-                        padding: const EdgeInsets.symmetric(vertical: 60),
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'How can I help you today?',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.w600),
-                        ),
+                        height: MediaQuery.of(context).size.height,
+                        padding: const EdgeInsets.only(bottom: 120),
+                        alignment: Alignment.bottomCenter,
+                        child: Wrap(children: [
+                          Container(
+                              height: 44,
+                              margin: const EdgeInsets.only(left: 16),
+                              width: MediaQuery.of(context).size.width,
+                              child: ListView.builder(
+                                  itemCount: simplePrompt.length,
+                                  shrinkWrap: true,
+                                  scrollDirection: Axis.horizontal,
+                                  itemBuilder: (ctx, idx) {
+                                    return InkWell(
+                                      onTap: () {
+                                        title.value =
+                                            simplePrompt[idx]['title'];
+                                        messageController.text =
+                                            simplePrompt[idx]['prompt'];
+                                        onSubmitPrompt();
+                                      },
+                                      child: Container(
+                                          margin:
+                                              const EdgeInsets.only(right: 8),
+                                          child: Chip(
+                                            backgroundColor:
+                                                const Color(0xff121212),
+                                            side: const BorderSide(
+                                                color: Colors.transparent),
+                                            shape: const StadiumBorder(),
+                                            label: Text(
+                                              simplePrompt[idx]['prompt'],
+                                              style: const TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          )),
+                                    );
+                                  }))
+                        ]),
                       );
                   }
                 })
@@ -233,7 +283,7 @@ class _NewChatState extends State<NewChatView> {
                     },
                     controller: messageController,
                     decoration: const InputDecoration(
-                        hintText: 'Message..',
+                        hintText: 'Enter a prompt here',
                         counterText: "",
                         hintStyle: TextStyle(
                           color: Color(0xffBFBFBF),
@@ -275,11 +325,25 @@ class _NewChatState extends State<NewChatView> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+
     if (widget.prompt != null) {
       messageController.text = '${widget.prompt}';
-
+      title.value = '${widget.title}';
       onSubmitPrompt();
+    } else if (widget.prompt == null) {
+      onGetSimplePrompt();
     }
+  }
+
+  onGetSimplePrompt() {
+    HomeScreenBloc()
+        .onGenerateResult(
+            'generate 4 prompts for lifestyle tips in array of object with id, prompt and title  variable in json format without json word')
+        .then((value) {
+      setState(() {
+        simplePrompt = jsonDecode(value);
+      });
+    });
   }
 
   @override
