@@ -19,11 +19,16 @@ class TrendingPromptBloc
     try {
       if (state.status == TrendingPromptStatus.initial) {
         final res = await gemini.text(
-            'generate 4 trending keywords  in an array of object  with id,  keyword, and  prompt variable in JSON');
+            'generate 5 trending keywords  in an array of object  with id,  keyword, and  prompt variable in JSON');
 
+        final withoutchara =
+            res?.content?.parts?.last.text!.replaceAll(RegExp('`'), '');
+
+        final withoutjson = withoutchara!.replaceAll(RegExp('json'), '');
+        
+        
         return emit(state.copyWith(
-            status: TrendingPromptStatus.success,
-            result: res?.content?.parts?.last.text));
+            status: TrendingPromptStatus.success, result: withoutjson));
       }
     } catch (_) {
       emit(state.copyWith(

@@ -1,14 +1,21 @@
+import 'dart:convert';
+
+import 'package:ai_chat/home_screen/home_screen.dart';
+import 'package:ai_chat/new_chat/views/stylesheet.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-
+import 'package:simple_grid/simple_grid.dart';
 import '../new_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 
+// ignore: must_be_immutable
 class NewChatView extends StatefulWidget {
   String? prompt;
+  String? title;
 
-  NewChatView({super.key, this.prompt});
+  NewChatView({super.key, this.prompt, this.title});
 
   @override
   State<NewChatView> createState() => _NewChatState();
@@ -17,11 +24,24 @@ class NewChatView extends StatefulWidget {
 class _NewChatState extends State<NewChatView> {
   final _scrollController = ScrollController();
   ValueNotifier<bool> textEditing = ValueNotifier<bool>(false);
+  ValueNotifier<bool> loadingIcon = ValueNotifier<bool>(false);
+  ValueNotifier<bool> isTopList = ValueNotifier<bool>(true);
+  ValueNotifier<String> title = ValueNotifier<String>('');
+
   TextEditingController messageController = TextEditingController();
   List<Content> chats = [];
   ValueNotifier<int> refreshResult = ValueNotifier<int>(0);
 
+  List simplePrompt = [];
+
   onSubmitPrompt() async {
+
+    if (title.value.isEmpty) {
+      HomeScreenBloc().onGenerateResult('Generate 1 simple and short title with this prompt = ${messageController.text}').then((value) {
+        
+        title.value = value;
+      });
+    }
     chats.add(
       Content(
         role: 'user',
@@ -32,15 +52,17 @@ class _NewChatState extends State<NewChatView> {
     );
 
     refreshResult.value++;
+    loadingIcon.value = true;
     messageController.clear();
 
     context.read<NewChatBloc>().add(PromptSubmit(chats));
+    print('loading indicator ${loadingIcon.value}');
   }
-
 
   chatListView() {
     return SingleChildScrollView(
-      child: Column(children: [
+      child:
+          Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         ValueListenableBuilder(
           valueListenable: refreshResult,
           builder: ((context, value, child) {
@@ -50,24 +72,20 @@ class _NewChatState extends State<NewChatView> {
               itemCount: chats.length,
               itemBuilder: (ctx, idx) {
                 return Align(
-                  alignment: chats[idx].role == 'user'
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
+                  alignment: Alignment.centerLeft,
                   child: Container(
                     constraints: BoxConstraints(
-                      maxWidth: chats[idx].role == 'user'
-                          ? MediaQuery.of(context).size.width - 60
-                          : MediaQuery.of(context).size.width - 40,
+                      maxWidth: MediaQuery.of(context).size.width - 20,
                     ),
                     alignment: Alignment.centerLeft,
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                         color: chats[idx].role == 'user'
-                            ? Colors.blueGrey
-                            : Colors.grey,
+                            ? Colors.white54
+                            : Colors.black54,
                         borderRadius: BorderRadius.circular(16)),
                     child: Markdown(
-                        styleSheet: MarkdownStyleSheet(textScaleFactor: 1.3),
+                        styleSheet: stylesheet(chats[idx].role),
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
                         data: chats[idx].parts?.lastOrNull?.text ??
@@ -77,6 +95,23 @@ class _NewChatState extends State<NewChatView> {
               },
             );
           }),
+        ),
+        ValueListenableBuilder(
+          valueListenable: loadingIcon,
+          builder: ((context, value, child) {
+            return value
+                ? const SizedBox(
+                    width: 200,
+                    height: 10,
+                    child: LoadingIndicator(
+                        indicatorType: Indicator.ballPulse,
+                        colors: [Colors.white],
+                        strokeWidth: 0.5,
+                        backgroundColor: Colors.transparent,
+                        pathBackgroundColor: Colors.transparent),
+                  )
+                : const SizedBox();
+          }),
         )
       ]),
     );
@@ -85,103 +120,203 @@ class _NewChatState extends State<NewChatView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          child: Column(children: [
-            BlocBuilder<NewChatBloc, NewChatState>(builder: (context, state) {
-              switch (state.status) {
-                case NewChatStatus.failure:
-                  return const Center(child: Text('Fail'));
-                case NewChatStatus.success || NewChatStatus.loading:
-                  {
-                    if (state.chats.isNotEmpty) {
-                      chats = state.chats;
-                      refreshResult.value++;
-                    }
-                    return chats.isNotEmpty
-                        ? chatListView()
-                        : const Text('No Result');
-                  }
-                default:
-                  return Container(
-                    padding: const EdgeInsets.symmetric(vertical: 60),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'How can I help you today?',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                    ),
-                  );
-              }
-            })
-          ]),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: ValueListenableBuilder(
+            valueListenable: isTopList,
+            builder: (context, value, child) {
+              return AnimatedContainer(
+                  padding: const EdgeInsets.only(top: 50, bottom: 20, left: 8),
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                  color: value == true
+                      ? Colors.black.withOpacity(0.1)
+                      : Colors.black,
+                  child: SpGrid(
+                    crossAlignment: WrapCrossAlignment.end,
+                    children: [
+                      SpGridItem(
+                          xs: 2,
+                          sm: 2,
+                          md: 2,
+                          lg: 2,
+                          aligment: Alignment.centerLeft,
+                          child: InkWell(
+                            onTap: () => Navigator.pop(context),
+                            child: const Icon(
+                              Icons.chevron_left,
+                              color: Colors.white,
+                            ),
+                          )),
+                      SpGridItem(
+                          xs: 8,
+                          sm: 8,
+                          md: 8,
+                          lg: 8,
+                          aligment: Alignment.center,
+                          child: ValueListenableBuilder(
+                            valueListenable: title,
+                            builder: (context, value, child) {
+                              return Text(
+                                value,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16),
+                              );
+                            },
+                          )),
+                      const SpGridItem(
+                          xs: 2, sm: 2, md: 2, lg: 2, child: SizedBox()),
+                    ],
+                  ));
+            },
+          ),
         ),
-      ),
-      bottomNavigationBar: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: Row(
+        extendBodyBehindAppBar: true,
+        extendBody: true,
+        body: Stack(
           children: [
-            Flexible(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                ),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    border:
-                        Border.all(color: const Color(0xffBFBFBF), width: 0.5),
-                    borderRadius: BorderRadius.circular(24)),
-                child: TextFormField(
-                  maxLines: 5,
-                  minLines: 1,
-                  keyboardType: TextInputType.multiline,
-                  onTap: () => {},
-                  style: const TextStyle(
-                    color: Color(0xff262626),
-                  ),
-                  onChanged: (val) {
-                    val.isEmpty
-                        ? textEditing.value = false
-                        : textEditing.value = true;
-                  },
-                  controller: messageController,
-                  decoration: const InputDecoration(
-                      hintText: 'Message..',
-                      counterText: "",
-                      hintStyle: TextStyle(
-                        color: Color(0xffBFBFBF),
-                      ),
-                      border: InputBorder.none),
-                ),
-              ),
+            Container(
+              decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                colors: [Color(0xff2d2026), Color(0xff1d1e54)],
+                stops: [0.25, 0.75],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              )),
             ),
-            ValueListenableBuilder(
-              valueListenable: textEditing,
-              builder: (context, value, child) {
-                return InkWell(
-                  onTap: value == false
-                      ? null
-                      : () {
-                          onSubmitPrompt();
-                        },
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    child: Icon(
-                      Icons.send,
-                      size: 24,
-                      color: value == false
-                          ? const Color(0xffBFBFBF)
-                          : Theme.of(context).primaryColor,
-                    ),
-                  ),
-                );
-              },
-            )
+            SingleChildScrollView(
+              controller: _scrollController,
+              child: Column(children: [
+                BlocBuilder<NewChatBloc, NewChatState>(
+                    builder: (context, state) {
+                  switch (state.status) {
+                    case NewChatStatus.failure:
+                      return const Center(child: Text('Fail'));
+                    case NewChatStatus.success || NewChatStatus.loading:
+                      {
+                        if (state.chats.isNotEmpty) {
+                          chats = state.chats;
+                          refreshResult.value++;
+                          loadingIcon.value = false;
+                        }
+                        return chats.isNotEmpty
+                            ? chatListView()
+                            : const Text('No Result');
+                      }
+                    default:
+                      return Container(
+                        height: MediaQuery.of(context).size.height,
+                        padding: const EdgeInsets.only(bottom: 120),
+                        alignment: Alignment.bottomCenter,
+                        child: Wrap(children: [
+                          Container(
+                              height: 44,
+                              margin: const EdgeInsets.only(left: 16),
+                              width: MediaQuery.of(context).size.width,
+                              child: ListView.builder(
+                                  itemCount: simplePrompt.length,
+                                  shrinkWrap: true,
+                                  scrollDirection: Axis.horizontal,
+                                  itemBuilder: (ctx, idx) {
+                                    return InkWell(
+                                      onTap: () {
+                                        title.value =
+                                            simplePrompt[idx]['title'];
+                                        messageController.text =
+                                            simplePrompt[idx]['prompt'];
+                                        onSubmitPrompt();
+                                      },
+                                      child: Container(
+                                          margin:
+                                              const EdgeInsets.only(right: 8),
+                                          child: Chip(
+                                            backgroundColor:
+                                                const Color(0xff121212),
+                                            side: const BorderSide(
+                                                color: Colors.transparent),
+                                            shape: const StadiumBorder(),
+                                            label: Text(
+                                              simplePrompt[idx]['prompt'],
+                                              style: const TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          )),
+                                    );
+                                  }))
+                        ]),
+                      );
+                  }
+                })
+              ]),
+            ),
           ],
         ),
-      ),
-    );
+        bottomNavigationBar: Container(
+          color: Colors.black,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: Row(
+            children: [
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                  ),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(
+                          color: const Color(0xffBFBFBF), width: 0.5),
+                      borderRadius: BorderRadius.circular(24)),
+                  child: TextFormField(
+                    maxLines: 5,
+                    minLines: 1,
+                    keyboardType: TextInputType.multiline,
+                    onTap: () => {},
+                    style: const TextStyle(
+                      color: Color(0xff262626),
+                    ),
+                    onChanged: (val) {
+                      val.isEmpty
+                          ? textEditing.value = false
+                          : textEditing.value = true;
+                    },
+                    controller: messageController,
+                    decoration: const InputDecoration(
+                        hintText: 'Enter a prompt here',
+                        counterText: "",
+                        hintStyle: TextStyle(
+                          color: Color(0xffBFBFBF),
+                        ),
+                        border: InputBorder.none),
+                  ),
+                ),
+              ),
+              ValueListenableBuilder(
+                valueListenable: textEditing,
+                builder: (context, value, child) {
+                  return InkWell(
+                    onTap: value == false
+                        ? null
+                        : () {
+                            onSubmitPrompt();
+                          },
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      child: Icon(
+                        Icons.send,
+                        size: 24,
+                        color: value == false
+                            ? const Color(0xffBFBFBF)
+                            : Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  );
+                },
+              )
+            ],
+          ),
+        ));
   }
 
   /// Function ///
@@ -190,11 +325,25 @@ class _NewChatState extends State<NewChatView> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-      if (widget.prompt != null) {
-      messageController.text = '${widget.prompt}';
 
+    if (widget.prompt != null) {
+      messageController.text = '${widget.prompt}';
+      title.value = '${widget.title}';
       onSubmitPrompt();
+    } else if (widget.prompt == null) {
+      onGetSimplePrompt();
     }
+  }
+
+  onGetSimplePrompt() {
+    HomeScreenBloc()
+        .onGenerateResult(
+            'generate 4 prompts for lifestyle tips in array of object with id, prompt and title  variable in json format without json word')
+        .then((value) {
+      setState(() {
+        simplePrompt = jsonDecode(value);
+      });
+    });
   }
 
   @override
@@ -206,15 +355,21 @@ class _NewChatState extends State<NewChatView> {
   }
 
   void _onScroll() async {
-    if (_isBottom) {
-      // when the scroll reached bottom, all logic here will run
-    }
+    _scrollIndicator == 0.0 ? isTopList.value = true : isTopList.value = false;
   }
 
-  bool get _isBottom {
+  get _scrollIndicator {
     if (!_scrollController.hasClients) return false;
-    final maxScroll = _scrollController.position.maxScrollExtent;
+
     final currentScroll = _scrollController.offset;
-    return currentScroll >= (maxScroll * 0.9);
+
+    return currentScroll;
   }
+
+  // bool get _isBottom {
+  //   if (!_scrollController.hasClients) return false;
+  //   final maxScroll = _scrollController.position.maxScrollExtent;
+  //   final currentScroll = _scrollController.offset;
+  //   return currentScroll >= (maxScroll * 0.9);
+  // }
 }

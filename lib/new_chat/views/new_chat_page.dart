@@ -12,23 +12,16 @@ class NewChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: AppBar(
-            automaticallyImplyLeading: true,
-            centerTitle: false,
-            elevation: 1,
-            backgroundColor: Colors.white,
-            titleSpacing: 0,
-            title: Text(title != null ? '$title' : 'New Chat')),
-      ),
       body: MultiBlocProvider(
         providers: [
           BlocProvider<NewChatBloc>(
             create: (_) => NewChatBloc(),
           ),
         ],
-        child: SafeArea(child: NewChatView(prompt: prompt)),
+        child: NewChatView(
+          prompt: prompt,
+          title: title,
+        ),
       ),
     );
   }
